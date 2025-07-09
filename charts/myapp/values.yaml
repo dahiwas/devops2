@@ -1,0 +1,139 @@
+# Configurações globais
+global:
+  namespace: chatapp
+  environment: local
+
+# Configurações de imagem
+image:
+  repository: chatapp
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+# API Chat BD - FastAPI para upload de PDFs e busca vetorial
+apiChatBd:
+  enabled: true
+  name: api-chat-bd
+  image:
+    repository: chatapp/api-chat-bd
+    tag: "latest"
+  replicas: 1
+  port: 8000
+  service:
+    type: ClusterIP
+    port: 8000
+  env:
+    - name: GEMINI_API_KEY
+      value: "AIzaSyAgSYjgEHUhjTwMhGBKbLOBb_i83q3mH9s"
+    - name: QDRANT_URL
+      value: "http://qdrant:6333"
+    - name: QDRANT_HOST
+      value: "qdrant"
+    - name: QDRANT_PORT
+      value: "6333"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# API Chat LLM - FastAPI para integração com Gemini
+chatApiLlm:
+  enabled: true
+  name: chat-api-llm
+  image:
+    repository: chatapp/chat-api-llm
+    tag: "latest"
+  replicas: 1
+  port: 8000
+  service:
+    type: ClusterIP
+    port: 8000
+  env:
+    - name: GEMINI_API_KEY
+      value: "AIzaSyAgSYjgEHUhjTwMhGBKbLOBb_i83q3mH9s"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Interface Chat - Streamlit para interface web
+chatInterface:
+  enabled: true
+  name: chat-interface
+  image:
+    repository: chatapp/chat-interface
+    tag: "latest"
+  replicas: 1
+  port: 8501
+  service:
+    type: ClusterIP
+    port: 8501
+  env:
+    - name: QDRANT_API_URL
+      value: "http://api-chat-bd:8000"
+    - name: GEMINI_API_URL
+      value: "http://chat-api-llm:8000"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Qdrant - Banco de dados vetorial
+qdrant:
+  enabled: true
+  name: qdrant
+  image:
+    repository: qdrant/qdrant
+    tag: "v1.7.4"
+  replicas: 1
+  port: 6333
+  service:
+    type: ClusterIP
+    port: 6333
+  persistence:
+    enabled: true
+    storageClass: standard
+    size: 1Gi
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+# Ingress para acesso externo via Minikube
+ingress:
+  enabled: true
+  className: nginx
+
+# Configurações de namespace
+namespace:
+  create: false
+  name: chatapp
+
+# Configurações de ServiceAccount
+serviceAccount:
+  create: true
+  name: chatapp-sa
+
+# Configurações de segurança
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 2000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+    - ALL 

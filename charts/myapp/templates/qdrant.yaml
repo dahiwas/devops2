@@ -1,0 +1,81 @@
+{{- if .Values.qdrant.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.qdrant.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.qdrant.name }}
+    app.kubernetes.io/name: {{ include "myapp.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.qdrant.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.qdrant.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.qdrant.name }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+      - name: {{ .Values.qdrant.name }}
+        image: "{{ .Values.qdrant.image.repository }}:{{ .Values.qdrant.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.qdrant.port }}
+        - containerPort: 6334
+        resources:
+          {{- toYaml .Values.qdrant.resources | nindent 10 }}
+        volumeMounts:
+        - name: qdrant-storage
+          mountPath: /qdrant/storage
+      volumes:
+      - name: qdrant-storage
+        {{- if .Values.qdrant.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.qdrant.name }}-pvc
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.qdrant.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.qdrant.name }}
+    app.kubernetes.io/name: {{ include "myapp.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  type: {{ .Values.qdrant.service.type }}
+  ports:
+  - port: {{ .Values.qdrant.service.port }}
+    targetPort: {{ .Values.qdrant.port }}
+    protocol: TCP
+    name: http
+  - port: 6334
+    targetPort: 6334
+    protocol: TCP
+    name: grpc
+  selector:
+    app: {{ .Values.qdrant.name }}
+{{- if .Values.qdrant.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.qdrant.name }}-pvc
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.qdrant.persistence.size }}
+  storageClassName: {{ .Values.qdrant.persistence.storageClass }}
+{{- end }}
+{{- end }}

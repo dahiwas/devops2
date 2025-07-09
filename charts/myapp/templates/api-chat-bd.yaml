@@ -1,0 +1,74 @@
+{{- if .Values.apiChatBd.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.apiChatBd.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.apiChatBd.name }}
+    app.kubernetes.io/name: {{ include "myapp.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.apiChatBd.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.apiChatBd.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.apiChatBd.name }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+      - name: {{ .Values.apiChatBd.name }}
+        image: "{{ .Values.apiChatBd.image.repository }}:{{ .Values.apiChatBd.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.apiChatBd.port }}
+        env:
+        {{- range .Values.apiChatBd.env }}
+        - name: {{ .name }}
+          value: {{ .value | quote }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.apiChatBd.resources | nindent 10 }}
+        volumeMounts:
+        - name: uploads-volume
+          mountPath: /app/uploads
+      volumes:
+      - name: uploads-volume
+        persistentVolumeClaim:
+          claimName: {{ .Values.apiChatBd.name }}-uploads-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.apiChatBd.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.apiChatBd.name }}
+    app.kubernetes.io/name: {{ include "myapp.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  type: {{ .Values.apiChatBd.service.type }}
+  ports:
+  - port: {{ .Values.apiChatBd.service.port }}
+    targetPort: {{ .Values.apiChatBd.port }}
+    protocol: TCP
+  selector:
+    app: {{ .Values.apiChatBd.name }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.apiChatBd.name }}-uploads-pvc
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard
+{{- end }}

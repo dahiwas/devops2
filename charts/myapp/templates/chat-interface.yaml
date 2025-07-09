@@ -1,0 +1,54 @@
+{{- if .Values.chatInterface.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.chatInterface.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.chatInterface.name }}
+    app.kubernetes.io/name: {{ include "myapp.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.chatInterface.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.chatInterface.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.chatInterface.name }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+      - name: {{ .Values.chatInterface.name }}
+        image: "{{ .Values.chatInterface.image.repository }}:{{ .Values.chatInterface.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.chatInterface.port }}
+        env:
+        {{- range .Values.chatInterface.env }}
+        - name: {{ .name }}
+          value: {{ .value | quote }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.chatInterface.resources | nindent 10 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.chatInterface.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.chatInterface.name }}
+    app.kubernetes.io/name: {{ include "myapp.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  type: {{ .Values.chatInterface.service.type }}
+  ports:
+  - port: {{ .Values.chatInterface.service.port }}
+    targetPort: {{ .Values.chatInterface.port }}
+    protocol: TCP
+  selector:
+    app: {{ .Values.chatInterface.name }}
+{{- end }}

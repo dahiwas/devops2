@@ -1,0 +1,54 @@
+{{- if .Values.chatApiLlm.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.chatApiLlm.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.chatApiLlm.name }}
+    app.kubernetes.io/name: {{ include "myapp.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.chatApiLlm.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.chatApiLlm.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.chatApiLlm.name }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+      - name: {{ .Values.chatApiLlm.name }}
+        image: "{{ .Values.chatApiLlm.image.repository }}:{{ .Values.chatApiLlm.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.chatApiLlm.port }}
+        env:
+        {{- range .Values.chatApiLlm.env }}
+        - name: {{ .name }}
+          value: {{ .value | quote }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.chatApiLlm.resources | nindent 10 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.chatApiLlm.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.chatApiLlm.name }}
+    app.kubernetes.io/name: {{ include "myapp.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  type: {{ .Values.chatApiLlm.service.type }}
+  ports:
+  - port: {{ .Values.chatApiLlm.service.port }}
+    targetPort: {{ .Values.chatApiLlm.port }}
+    protocol: TCP
+  selector:
+    app: {{ .Values.chatApiLlm.name }}
+{{- end }}
