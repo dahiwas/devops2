@@ -2,6 +2,9 @@
 .env
 .env.*
 !.env.example
+# Ignorar .env em qualquer lugar
+**/.env
+**/.env.*
 
 # Logs
 *.log
