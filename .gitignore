@@ -1,10 +1,8 @@
-# Arquivos de ambiente e secrets
-.env
-.env.*
-!.env.example
-# Ignorar .env em qualquer lugar
+# Ignorar .env e variações em qualquer diretório
 **/.env
 **/.env.*
+.env
+.env.*
 
 # Logs
 *.log
@@ -34,3 +32,7 @@ dist/
 build/ 
 
 scripts/reset_minikube.sh
+
+DOCUMENTACAO_TECNICA.md
+API_ROUTING.md
+
