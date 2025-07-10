@@ -31,6 +31,13 @@ spec:
         - name: {{ .name }}
           value: {{ .value | quote }}
         {{- end }}
+        {{- range .Values.chatApiLlm.envFromSecret }}
+        - name: {{ .name }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .secretName }}
+              key: {{ .secretKey }}
+        {{- end }}
         resources:
           {{- toYaml .Values.chatApiLlm.resources | nindent 10 }}
 ---

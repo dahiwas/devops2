@@ -1,0 +1,33 @@
+# Arquivos de ambiente e secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Arquivos temporários
+.tmp/
+temp/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Kubernetes secrets locais
+secrets/
+*.key
+*.crt
+
+# Build artifacts
+dist/
+build/ 
+
+scripts/reset_minikube.sh

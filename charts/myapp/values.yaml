@@ -9,6 +9,13 @@ image:
   pullPolicy: IfNotPresent
   tag: "latest"
 
+# Configurações de Secrets (como .env)
+secrets:
+  create: true
+  name: chatapp-secrets
+  data:
+    GEMINI_API_KEY: "AIzaSyAgSYjgEHUhjTwMhGBKbLOBb_i83q3mH9s"  # Valor será sobrescrito pelo script
+
 # API Chat BD - FastAPI para upload de PDFs e busca vetorial
 apiChatBd:
   enabled: true
@@ -22,14 +29,18 @@ apiChatBd:
     type: ClusterIP
     port: 8000
   env:
-    - name: GEMINI_API_KEY
-      value: "AIzaSyAgSYjgEHUhjTwMhGBKbLOBb_i83q3mH9s"
+    # Variáveis normais (não sensíveis)
     - name: QDRANT_URL
       value: "http://qdrant:6333"
     - name: QDRANT_HOST
       value: "qdrant"
     - name: QDRANT_PORT
       value: "6333"
+  envFromSecret:
+    # Variáveis sensíveis vem do Secret
+    - name: GEMINI_API_KEY
+      secretName: chatapp-secrets
+      secretKey: GEMINI_API_KEY
   resources:
     requests:
       memory: "256Mi"
@@ -50,9 +61,12 @@ chatApiLlm:
   service:
     type: ClusterIP
     port: 8000
-  env:
+  env: []  # Sem variáveis normais
+  envFromSecret:
+    # Variáveis sensíveis vem do Secret
     - name: GEMINI_API_KEY
-      value: "AIzaSyAgSYjgEHUhjTwMhGBKbLOBb_i83q3mH9s"
+      secretName: chatapp-secrets
+      secretKey: GEMINI_API_KEY
   resources:
     requests:
       memory: "256Mi"
@@ -78,6 +92,7 @@ chatInterface:
       value: "http://api-chat-bd:8000"
     - name: GEMINI_API_URL
       value: "http://chat-api-llm:8000"
+  envFromSecret: []  # Interface não precisa de secrets diretos
   resources:
     requests:
       memory: "256Mi"

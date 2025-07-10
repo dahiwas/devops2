@@ -120,7 +120,7 @@ kubectl get pods -n "$NAMESPACE"
 
 # Aguardar pods ficarem prontos
 log "Aguardando pods ficarem prontos..."
-kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=chatapp -n "$NAMESPACE" --timeout=300s
+kubectl wait --for=condition=ready pod -l app -n "$NAMESPACE" --timeout=300s
 
 # Mostrar informações de acesso
 log "Configurando acesso via Ingress..."
@@ -137,12 +137,12 @@ if kubectl get ingress -n "$NAMESPACE" > /dev/null 2>&1; then
     
     success "Aplicação deployada com sucesso!"
     echo ""
-    echo "🚀 Acesso à aplicação:"
+    echo " Acesso à aplicação:"
     echo "   Interface Web: http://k8s.local"
     echo "   API Chat BD: http://k8s.local/api/bd"
     echo "   API Chat LLM: http://k8s.local/api/llm"
     echo ""
-    echo "🔧 Comandos úteis:"
+    echo " Comandos úteis:"
     echo "   Logs: kubectl logs -f deployment/chat-interface -n $NAMESPACE"
     echo "   Pods: kubectl get pods -n $NAMESPACE"
     echo "   Services: kubectl get svc -n $NAMESPACE"
@@ -150,7 +150,7 @@ if kubectl get ingress -n "$NAMESPACE" > /dev/null 2>&1; then
 else
     warning "Ingress não configurado, use port-forward para acesso"
     echo ""
-    echo "🔧 Comandos para acesso:"
+    echo " Comandos para acesso:"
     echo "   Interface: kubectl port-forward svc/chat-interface 8501:8501 -n $NAMESPACE"
     echo "   API BD: kubectl port-forward svc/api-chat-bd 8000:8000 -n $NAMESPACE"
     echo "   API LLM: kubectl port-forward svc/chat-api-llm 8001:8000 -n $NAMESPACE"

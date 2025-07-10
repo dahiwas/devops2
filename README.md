@@ -107,16 +107,29 @@ minikube start --driver=docker
 minikube addons enable ingress
 ```
 
-### 2. **Build e Deploy Automatizado**
+### 2. **Configurar Variáveis de Ambiente (Obrigatório)**
 ```bash
-# Dar permissão de execução
-chmod +x scripts/build_and_load.sh
+# Criar arquivo .env na raiz do projeto
+echo 'GEMINI_API_KEY=sua_chave_gemini_aqui' > .env
 
-# Executar build e deploy
+# Exemplo com chave real:
+# echo 'GEMINI_API_KEY=AIzaSyAgSYjgEHUhjTwMhGBKbLOBb_i83q3mH9s' > .env
+```
+
+> ⚠️ **Importante:** Obtenha sua chave API em [Google AI Studio](https://makersuite.google.com/app/apikey)
+
+### 3. **Deploy Seguro com Secrets**
+```bash
+# Método recomendado - usando .env
+chmod +x scripts/deploy_with_secrets.sh
+./scripts/deploy_with_secrets.sh
+
+# Método alternativo - build e deploy tradicional
+chmod +x scripts/build_and_load.sh
 ./scripts/build_and_load.sh
 ```
 
-### 3. **Verificar Deploy**
+### 4. **Verificar Deploy**
 ```bash
 # Verificar pods
 kubectl get pods -n chatapp
@@ -277,7 +290,3 @@ minikube stop
 2. **Chat com IA** - Conversação contextualizada usando Gemini
 3. **Busca Vetorial** - Busca semântica em documentos indexados
 4. **Processamento de Linguagem Natural** - Análise e geração de texto
-
----
-
-**Desenvolvido para a disciplina de DevOps - Kubernetes com Minikube** 🚀 
